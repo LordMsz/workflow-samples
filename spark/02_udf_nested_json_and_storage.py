@@ -9,6 +9,10 @@ spark = SparkSession.builder \
     .master("spark://spark-master:7077") \
     .getOrCreate()
 
+    # Below extra classpath was necessary in some cases
+    # .config("spark.executor.extraClassPath", "/opt/spark/jars/*") \
+    # .config("spark.driver.extraClassPath", "/opt/spark/jars/*") \
+
 data = []
 for i in range(1000):
     data.append((i, "source-1", { "category": "category-1", "value": i, "text": f"This is some text {i}"}))
@@ -45,5 +49,22 @@ df_with_metadata.select(
 ) \
 .limit(10) \
 .show(truncate=False)
+
+# TODO: save the projected data into postgres
+jdbc_url = "jdbc:postgresql://postgres-db:5432/postgres"
+properties = {
+    "user": "postgres",
+    "password": "password",
+    "driver": "org.postgresql.Driver"
+}
+
+df_with_metadata.select(
+    col("id"),
+    col("source"),
+    col("data.category"),
+    col("metadata.text_size"),
+    col("metadata.metadata.active")
+) \
+.write.jdbc(url=jdbc_url, table="filtered_data", mode="overwrite", properties=properties)
 
 spark.stop()

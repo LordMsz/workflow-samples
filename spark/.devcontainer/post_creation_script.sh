@@ -1,1 +1,1 @@
-pip install pyspark
+pip install pyspark && wget -P /opt/spark/jars https://jdbc.postgresql.org/download/postgresql-42.2.23.jar
